@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Cloudstudio\Ollama\Facades\Ollama;
+
 
 class Profile extends Component
 {
@@ -19,6 +21,14 @@ class Profile extends Component
      */
     public function mount(): void
     {
+
+        $response = Ollama::agent('You are a weather expert...')
+            ->prompt('Why is the sky blue?')
+            ->model('llama2')
+            ->options(['temperature' => 0.8])
+            ->stream(false)
+            ->ask();
+            dump($response) ;
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
     }
