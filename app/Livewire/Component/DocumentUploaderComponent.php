@@ -17,20 +17,20 @@ class DocumentUploaderComponent extends Component
     {
         // dd('hello');
     }
-    
+
 
     public function uploadDocument()
     {
         $this->validate([
             'file' => 'required|file|mimes:pdf,doc,docx|max:2048', // 2MB Max
         ]);
-
+        
         $storePath = $this->file->store('documents');
         $document = Document::create([
             'name' => Str::slug(pathinfo($this->file->getClientOriginalName(), PATHINFO_FILENAME)),
             'original_name' => $this->file->getClientOriginalName(),
             'path' => $storePath,
-            'mime_type' => $this->file->getClientMimeType(),
+            'mime_type' => $this->file->getMimeType(),
         ]);
 
         ProcessDocument::dispatch($document->id);

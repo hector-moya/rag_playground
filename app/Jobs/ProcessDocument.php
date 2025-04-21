@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Smalot\PdfParser\Parser as PdfParser;
 use App\Models\Chunk;
 use App\Services\ChunkerService as Chunker;
+use Exception;
 
 class ProcessDocument implements ShouldQueue
 {
@@ -33,18 +34,20 @@ class ProcessDocument implements ShouldQueue
         $text = match($document->mime_type) {
             'application/pdf' => (new PdfParser)->parseFile($filePath)->getText(),
             'text/plain' => file_get_contents($filePath),
-            default => throw new \Exception('Unsupported file type: ' . $document->mime_type),
+            default => throw new Exception('Unsupported file type: ' . $document->mime_type),
         };
 
         $chunker = new Chunker();
         $chunks = $chunker->chunk($text);
 
         foreach ($chunks as $index => $chunkText) {
-            Chunk::create([
-                'document_id',
+            $chunk = Chunk::create([
+                'document_id' => $document->id,
                 'content' => $chunkText,
                 'chunk_index' => $index,
             ]);
+
+            GenerateEmbedding::dispatch($chunk->id);
         }
 
 
